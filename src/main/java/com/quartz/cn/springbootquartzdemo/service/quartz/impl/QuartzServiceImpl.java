@@ -1,6 +1,7 @@
 package com.quartz.cn.springbootquartzdemo.service.quartz.impl;
 
 
+import com.alibaba.fastjson.JSON;
 import com.quartz.cn.springbootquartzdemo.bean.QuartzTaskErrors;
 import com.quartz.cn.springbootquartzdemo.bean.QuartzTaskInformations;
 import com.quartz.cn.springbootquartzdemo.bean.QuartzTaskRecords;
@@ -14,6 +15,7 @@ import com.quartz.cn.springbootquartzdemo.util.HttpClientUtil;
 import com.quartz.cn.springbootquartzdemo.util.ResultEnum;
 import com.quartz.cn.springbootquartzdemo.util.ResultUtil;
 import com.quartz.cn.springbootquartzdemo.vo.QuartzTaskRecordsVo;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.quartz.*;
 import org.slf4j.Logger;
@@ -38,6 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Version  1.0
  */
 @Service
+@Slf4j
 public class QuartzServiceImpl implements QuartzService, InitializingBean {
 
     private static final Logger logger = LoggerFactory.getLogger(QuartzServiceImpl.class);
@@ -103,6 +106,7 @@ public class QuartzServiceImpl implements QuartzService, InitializingBean {
     @Override
     @Transactional
     public String startJob(String taskNo) throws SchedulerException {
+        log.info("启动 or 暂停定时任务---{}---", Thread.currentThread().getStackTrace()[1].getMethodName());
         QuartzTaskInformations quartzTaskInformation = quartzTaskInformationsService.getTaskByTaskNo(taskNo);
         if (quartzTaskInformation == null) {
             return ResultUtil.success(ResultEnum.NO_DATA.getCode(), ResultEnum.NO_DATA.getMessage());
@@ -138,6 +142,7 @@ public class QuartzServiceImpl implements QuartzService, InitializingBean {
      */
     @Override
     public void initLoadOnlineTasks() {
+        log.info("初始化加载定时任务---{}---", Thread.currentThread().getStackTrace()[1].getMethodName());
         List<QuartzTaskInformations> unnfrozenTasks = quartzTaskInformationsService.getUnnfrozenTasks(ResultEnum.UNFROZEN.name());
         if (CollectionUtils.isEmpty(unnfrozenTasks)) {
             logger.info("没有需要初始化加载的定时任务");
@@ -160,6 +165,7 @@ public class QuartzServiceImpl implements QuartzService, InitializingBean {
      */
     @Override
     public void afterPropertiesSet() throws Exception {
+        log.info("初始化加载定时任务---{}---", Thread.currentThread().getStackTrace()[1].getMethodName());
         this.initLoadOnlineTasks();
     }
 
@@ -228,8 +234,17 @@ public class QuartzServiceImpl implements QuartzService, InitializingBean {
     }
 
     public void schedule(QuartzTaskInformations quartzTaskInfo, Scheduler scheduler) throws SchedulerException {
+        log.info("---{}---入参:{}", Thread.currentThread().getStackTrace()[1].getMethodName(), JSON.toJSONString(quartzTaskInfo));
+
+        /**
+         * 触发器
+         */
         TriggerKey triggerKey = TriggerKey.triggerKey(quartzTaskInfo.getTaskno(), Scheduler.DEFAULT_GROUP);
+
         JobDetail jobDetail = JobBuilder.newJob(QuartzMainJobFactory.class).withDescription(quartzTaskInfo.getTaskname()).withIdentity(quartzTaskInfo.getTaskno(), Scheduler.DEFAULT_GROUP).build();
+        /**
+         * JobDataMap用于传递数据
+         */
         JobDataMap jobDataMap = jobDetail.getJobDataMap();
         jobDataMap.put("id", quartzTaskInfo.getId().toString());
         jobDataMap.put("taskNo", quartzTaskInfo.getTaskno());
@@ -237,7 +252,9 @@ public class QuartzServiceImpl implements QuartzService, InitializingBean {
         jobDataMap.put("sendType", quartzTaskInfo.getSendtype());
         jobDataMap.put("url", quartzTaskInfo.getUrl());
         jobDataMap.put("executeParameter", quartzTaskInfo.getExecuteparamter());
+
         CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder.cronSchedule(quartzTaskInfo.getSchedulerrule());
+
         CronTrigger cronTrigger = TriggerBuilder.newTrigger().withDescription(quartzTaskInfo.getTaskname()).withIdentity(triggerKey).withSchedule(cronScheduleBuilder).build();
         scheduler.scheduleJob(jobDetail, cronTrigger);
         logger.info("taskNo={},taskName={},scheduleRule={} load to quartz success!", quartzTaskInfo.getTaskno(), quartzTaskInfo.getTaskname(), quartzTaskInfo.getSchedulerrule());

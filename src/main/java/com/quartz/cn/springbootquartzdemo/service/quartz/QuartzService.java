@@ -10,6 +10,11 @@ import org.quartz.SchedulerException;
 import java.util.List;
 
 public interface QuartzService {
+    /**
+     * 新增定时任务
+     * @param quartzTaskInformations
+     * @return
+     */
     String addTask(QuartzTaskInformations quartzTaskInformations);
 
     List<QuartzTaskInformations> getTaskList(String taskNo, String currentPage);
@@ -34,6 +39,11 @@ public interface QuartzService {
 
     List<QuartzTaskRecordsVo> taskRecords(String taskNo);
 
+    /**
+     * 立即运行一次定时任务
+     * @param taskNo
+     * @return
+     */
     String runTaskRightNow(String taskNo);
 
     QuartzTaskErrors detailTaskErrors(String recordId);

@@ -6,7 +6,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-@SpringBootApplication
+/*@SpringBootApplication
 public class SpringbootQuartzDemoApplication extends SpringBootServletInitializer {
 
 	public static void main(String[] args) {
@@ -16,6 +16,13 @@ public class SpringbootQuartzDemoApplication extends SpringBootServletInitialize
 	@Override
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
 		return builder.sources(SpringbootQuartzDemoApplication.class);
+	}
+}*/
+
+@SpringBootApplication
+public class SpringbootQuartzDemoApplication{
+	public static void main(String[] args) {
+		SpringApplication.run(SpringbootQuartzDemoApplication.class, args);
 	}
 }
 

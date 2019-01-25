@@ -8,6 +8,7 @@ import com.quartz.cn.springbootquartzdemo.util.ApplicationContextHolder;
 import com.quartz.cn.springbootquartzdemo.util.CommonUtil;
 import com.quartz.cn.springbootquartzdemo.util.HttpClientUtil;
 import com.quartz.cn.springbootquartzdemo.util.ResultEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.quartz.*;
 import org.slf4j.Logger;
@@ -23,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Version  1.0
  */
 @DisallowConcurrentExecution
+@Slf4j
 public class QuartzMainJobFactory implements Job {
 
     private static Logger logger = LoggerFactory.getLogger(QuartzMainJobFactory.class);
@@ -31,6 +33,7 @@ public class QuartzMainJobFactory implements Job {
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+        log.info("---{}---", Thread.currentThread().getStackTrace()[1].getMethodName());
         atomicInteger = new AtomicInteger(0);
 
         JobDataMap jobDataMap = jobExecutionContext.getMergedJobDataMap();
